@@ -1,0 +1,33 @@
+{
+	"schemaVersion": 1,
+	"id": "autorejoin",
+	"version": "${version}",
+	"name": "Auto Rejoin",
+	"description": "Automatically rejoins a server after being kicked, restarted, or in maintenance.",
+	"authors": ["BingoGames"],
+	"license": "MIT",
+	"environment": "client",
+	"icon": "assets/auto-rejoin/icon.png",
+	"entrypoints": {
+		"client": [
+			"com.lannister.autorejoin.AutoRejoinClient"
+		],
+		"modmenu": [
+			"com.lannister.autorejoin.ModMenuIntegration"
+		]
+	},
+	"mixins": [
+		{
+			"config": "autorejoin.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.18.0",
+		"fabric-api": "*",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"cloth-config": "*",
+		"modmenu": "*"
+	}
+}

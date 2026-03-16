@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"package": "com.lannister.autorejoin.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"DisconnectedScreenMixin",
+		"ScreenMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
