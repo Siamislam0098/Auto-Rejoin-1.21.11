@@ -32,6 +32,8 @@ public class RejoinScheduler {
     private final AtomicBoolean active           = new AtomicBoolean(false);
     private final AtomicInteger secondsRemaining = new AtomicInteger(0);
 
+    // These are kept even after active = false so the mixin
+    // can use them as fallback on the next disconnect screen
     private volatile String serverHost;
     private volatile int    serverPort;
     private volatile String serverName;
@@ -72,6 +74,8 @@ public class RejoinScheduler {
     public boolean isActive()            { return active.get(); }
     public int     getSecondsRemaining() { return Math.max(0, secondsRemaining.get()); }
     public String  getServerName()       { return serverName != null ? serverName : "Unknown"; }
+    public String  getServerHost()       { return serverHost; }
+    public int     getServerPort()       { return serverPort; }
 
     public String getFormattedTimeRemaining() {
         int s = getSecondsRemaining();
@@ -86,6 +90,8 @@ public class RejoinScheduler {
     }
 
     private void doRejoin() {
+        // Set active false BEFORE connecting so new DisconnectedScreen
+        // starts completely fresh if connection fails immediately
         active.set(false);
 
         if (serverHost == null || serverHost.isEmpty()) {
@@ -96,23 +102,24 @@ public class RejoinScheduler {
         AutoRejoinClient.LOGGER.info("[AutoRejoin] Connecting to \"{}\" ({}:{})...",
                 serverName, serverHost, serverPort);
 
+        final String host = serverHost;
+        final int    port = serverPort;
+        final String name = serverName;
+
         MinecraftClient client = MinecraftClient.getInstance();
 
         client.execute(() -> {
             try {
-                String addressStr = serverHost + ":" + serverPort;
+                String addressStr = host + ":" + port;
 
                 ServerInfo info = new ServerInfo(
-                        serverName != null ? serverName : serverHost,
+                        name != null ? name : host,
                         addressStr,
                         ServerInfo.ServerType.OTHER
                 );
 
                 ServerAddress address = ServerAddress.parse(addressStr);
 
-                // Confirmed from Yarn 1.21.4+ docs — ConnectScreen is in multiplayer package:
-                // static void connect(Screen, MinecraftClient, ServerAddress, ServerInfo,
-                //                     boolean quickPlay, @Nullable CookieStorage)
                 ConnectScreen.connect(
                         new MultiplayerScreen(new TitleScreen()),
                         client,
@@ -122,8 +129,7 @@ public class RejoinScheduler {
                         null
                 );
 
-                AutoRejoinClient.LOGGER.info("[AutoRejoin] ConnectScreen opened for {}:{}.",
-                        serverHost, serverPort);
+                AutoRejoinClient.LOGGER.info("[AutoRejoin] ConnectScreen opened for {}:{}.", host, port);
 
             } catch (Exception e) {
                 AutoRejoinClient.LOGGER.error("[AutoRejoin] Rejoin failed: {}", e.getMessage(), e);
