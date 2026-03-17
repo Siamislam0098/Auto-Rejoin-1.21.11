@@ -3,7 +3,6 @@ package com.lannister.autorejoin;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -18,21 +17,10 @@ public final class AutoRejoinConfig {
 
     private static AutoRejoinConfig INSTANCE = new AutoRejoinConfig();
 
-    // -------------------------------------------------------------------------
-    // Config fields — these are saved/loaded from autorejoin.json
-    // -------------------------------------------------------------------------
-
     public int rejoinDelaySecs = 180;
-
     public boolean autoRejoinEnabled = true;
 
-    // -------------------------------------------------------------------------
-    // Singleton + load/save
-    // -------------------------------------------------------------------------
-
-    public static AutoRejoinConfig get() {
-        return INSTANCE;
-    }
+    public static AutoRejoinConfig get() { return INSTANCE; }
 
     public static void load() {
         if (!Files.exists(CONFIG_PATH)) {
@@ -41,7 +29,6 @@ public final class AutoRejoinConfig {
         }
         try (Reader reader = Files.newBufferedReader(CONFIG_PATH)) {
             INSTANCE = GSON.fromJson(reader, AutoRejoinConfig.class);
-            // Clamp to sane values after loading
             INSTANCE.rejoinDelaySecs = clamp(INSTANCE.rejoinDelaySecs, 10, 600);
         } catch (IOException e) {
             AutoRejoinClient.LOGGER.error("[AutoRejoin] Failed to load config: {}", e.getMessage());
@@ -60,28 +47,26 @@ public final class AutoRejoinConfig {
         return Math.max(min, Math.min(max, value));
     }
 
-    // -------------------------------------------------------------------------
-    // Kept for compatibility with other classes that use REJOIN_DELAY_SECONDS
-    // -------------------------------------------------------------------------
-
     public static int getRejoinDelaySecs() {
         return INSTANCE.rejoinDelaySecs;
     }
 
-    // Trigger phrases
     public static final String[] REJOIN_TRIGGER_PHRASES = {
             "server is restarting", "server restarting", "restarting", "restart",
             "maintenance", "under maintenance", "in maintenance",
-            "kicked", "disconnected", "timed out", "connection lost",
-            "connection reset", "server closed", "end of stream",
-            "read timed out", "connect timed out", "io.netty",
-            "server full", "try again", "please wait", "back soon", "temporarily"
+            "failed to connect", "connection refused", "cannot connect",
+            "no further information", "disconnected",
+            "kicked", "timed out", "connection lost", "connection reset",
+            "server closed", "end of stream", "read timed out",
+            "connect timed out", "io.netty",
+            "server full", "try again", "please wait",
+            "back soon", "temporarily", "unavailable"
     };
 
-    // Block phrases
     public static final String[] REJOIN_BLOCK_PHRASES = {
             "banned", "you are banned", "permanent", "ip ban",
             "multiplayer is disabled", "not authenticated",
-            "invalid session", "outdated client", "outdated server", "incompatible"
+            "invalid session", "outdated client", "outdated server",
+            "incompatible"
     };
 }
